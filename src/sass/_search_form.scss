@@ -1,0 +1,53 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  height: 100px;
+  padding: 20px 0;
+
+  background-color: purple;
+}
+
+.search-form {
+  position: relative;
+  width: 40%;
+  height: 100%;
+}
+
+.search-form__input {
+  width: 100%;
+  height: 100%;
+  padding-right: 10%;
+
+  font-size: 200%;
+  border-radius: 5px;
+  border-width: 0;
+
+  &:focus {
+    outline: black solid 3px;
+  }
+}
+
+.button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  border-width: 0;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+
+  min-width: 40px;
+  width: 10%;
+  height: 100%;
+}
+
+.button__img {
+  width: 50%;
+  height: 50%;
+}
