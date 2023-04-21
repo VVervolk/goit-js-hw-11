@@ -40,7 +40,6 @@ window.addEventListener(
       window.scrollY + window.innerHeight + 400 >=
       document.documentElement.scrollHeight
     ) {
-      console.log('hi');
       sendRequest();
     }
   }, 1000)
@@ -96,30 +95,25 @@ async function fetchRequest(request) {
 }
 
 /**
- *
+ *Control buttonLoadMore, show alerts on the screen, call markup generate function, make smooth page scrolling
  * @param {Array} images
  * @returns
  */
 function checkResult(images) {
   lastPage = Math.ceil(images.totalHits / 40);
-  console.log(lastPage);
-
-  if (pageNumber === lastPage) {
-    buttonLoadMore.classList.add('hidden');
-  }
-
-  if (images.hits.length === 0 && pageNumber > lastPage) {
-    Notify.info('End of content.', NOTYFY_OPTIONS);
-
-    return;
-  }
 
   if (images.hits.length === 0 && pageNumber === 1) {
     Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.',
       NOTYFY_OPTIONS
     );
+    buttonLoadMore.classList.add('hidden');
+    return;
+  }
 
+  if (images.hits.length === 0 && pageNumber > lastPage) {
+    Notify.info('End of content.', NOTYFY_OPTIONS);
+    buttonLoadMore.classList.add('hidden');
     return;
   }
 
