@@ -30,22 +30,22 @@
   align-items: center;
 }
 
-.load-more {
-  display: block;
-  margin: 0 auto;
+// .load-more {
+//   display: block;
+//   margin: 0 auto;
 
-  min-width: 115px;
-  width: calc(100% / 7);
-  height: 40px;
+//   min-width: 115px;
+//   width: calc(100% / 7);
+//   height: 40px;
 
-  border-radius: 5px;
-  border-width: 0;
+//   border-radius: 5px;
+//   border-width: 0;
 
-  background-color: purple;
-  color: white;
-  font-size: 20px;
+//   background-color: purple;
+//   color: white;
+//   font-size: 20px;
 
-  &:active {
-    outline: black solid 3px;
-  }
-}
+//   &:active {
+//     outline: black solid 3px;
+//   }
+// }

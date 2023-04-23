@@ -1,13 +1,15 @@
-import axios from 'axios';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import SimpleLightbox from 'simplelightbox';
-import 'simplelightbox/dist/simple-lightbox.min.css';
 import throttle from 'lodash.throttle';
+import { fetchRequest } from './js/fetchRequest';
+import { openBigImage } from './js/openBigImage';
+import { clearResults } from './js/clearResults';
+import { generateMarkup } from './js/generateMarkup';
+// import { smoothPageScrolling } from './js/smoothPageScrolling';
 
 const input = document.querySelector('.js-input');
 const form = document.querySelector('.js-form');
 const gallery = document.querySelector('.gallery');
-const buttonLoadMore = document.querySelector('.load-more');
+// const buttonLoadMore = document.querySelector('.load-more');
 
 const NOTYFY_OPTIONS = {
   position: 'left-top',
@@ -27,7 +29,7 @@ form.addEventListener('submit', e => {
   e.preventDefault();
   sendRequest();
 });
-buttonLoadMore.addEventListener('click', sendRequest);
+// buttonLoadMore.addEventListener('click', sendRequest);
 gallery.addEventListener('click', openBigImage);
 
 /**
@@ -37,7 +39,7 @@ window.addEventListener(
   'scroll',
   throttle(function () {
     if (
-      window.scrollY + window.innerHeight + 400 >=
+      window.scrollY + window.innerHeight + 1000 >=
       document.documentElement.scrollHeight
     ) {
       sendRequest();
@@ -46,26 +48,12 @@ window.addEventListener(
 );
 
 /**
- * Open modal with big image
- * @param {'click'} evt
- * @returns modal
- */
-function openBigImage(evt) {
-  evt.preventDefault();
-  if (!evt.target.classList.contains('gallery__image')) {
-    return;
-  }
-
-  bigImageModal.on('show.simplelightbox');
-}
-
-/**
  * Check value of input, update pageNumber , send request to api
- * @param {event} e
+ *
  */
-function sendRequest(e) {
+function sendRequest() {
   if (request !== input.value) {
-    clearResults();
+    clearResults(gallery);
     pageNumber = 0;
   }
 
@@ -73,29 +61,13 @@ function sendRequest(e) {
 
   request = input.value;
 
-  fetchRequest(request)
+  fetchRequest(request, pageNumber)
     .then(images => checkResult(images))
     .catch(console.log);
 }
 
-async function fetchRequest(request) {
-  const params = {
-    key: '35579706-8f6d810a90183242eb7243061',
-    q: `${request}`,
-    image_type: 'photo',
-    orientation: 'horizontal',
-    safesearch: true,
-    page: `${pageNumber}`,
-    per_page: 40,
-  };
-  const response = await axios.get(`https://pixabay.com/api/`, { params });
-  const images = await response.data;
-
-  return images;
-}
-
 /**
- *Control buttonLoadMore, show alerts on the screen, call markup generate function, make smooth page scrolling
+ *Control buttonLoadMore, show alerts on the screen, call markup generate function, call smooth page scrolling function
  * @param {Array} images
  * @returns
  */
@@ -107,13 +79,11 @@ function checkResult(images) {
       'Sorry, there are no images matching your search query. Please try again.',
       NOTYFY_OPTIONS
     );
-    buttonLoadMore.classList.add('hidden');
+    // buttonLoadMore.classList.add('hidden');
     return;
-  }
-
-  if (images.hits.length === 0 && pageNumber > lastPage) {
+  } else if (images.hits.length === 0 && pageNumber > lastPage) {
     Notify.info('End of content.', NOTYFY_OPTIONS);
-    buttonLoadMore.classList.add('hidden');
+    // buttonLoadMore.classList.add('hidden');
     return;
   }
 
@@ -122,78 +92,16 @@ function checkResult(images) {
     NOTYFY_OPTIONS
   );
 
-  generateMarkup(images.hits);
+  generateMarkup(images.hits, gallery);
 
   if (pageNumber > 1) {
-    buttonLoadMore.classList.add('hidden');
-    buttonLoadMore.classList.remove('hidden');
-
-    const { height: cardHeight } =
-      gallery.firstElementChild.getBoundingClientRect();
-
-    window.scrollBy({
-      top: cardHeight * 2,
-      behavior: 'smooth',
-    });
+    // buttonLoadMore.classList.add('hidden');
+    // buttonLoadMore.classList.remove('hidden');
+    bigImageModal.refresh();
+    // smoothPageScrolling(gallery);
   }
 
-  bigImageModal.refresh();
-
-  if (pageNumber === 1) {
-    buttonLoadMore.classList.remove('hidden');
-  }
-}
-
-/**
- * Generate markup of cards
- * @param {Array} image
- */
-function generateMarkup(image) {
-  const markup = image
-    .map(
-      ({
-        webformatURL,
-        largeImageURL,
-        tags,
-        likes,
-        views,
-        comments,
-        downloads,
-      }) => {
-        return `
-                <div class="photo-card">
-                  <a href="${largeImageURL}">  
-                    <img class="photo-card__img gallery__image" src="${webformatURL}" alt="${tags} loading="lazy" />
-                  </a>
-                  <div class="info">
-                    <p class="info-item">
-                      <b>Likes</b>
-                      ${likes}
-                    </p>
-                    <p class="info-item">
-                      <b>Views</b>
-                      ${views}
-                    </p>
-                    <p class="info-item">
-                      <b>Comments</b>
-                      ${comments}
-                    </p>
-                    <p class="info-item">
-                      <b>Downloads</b>
-                      ${downloads}
-                    </p>
-                  </div>
-                </div>`;
-      }
-    )
-    .join('');
-
-  gallery.insertAdjacentHTML('beforeend', markup);
-}
-
-/**
- * Remove previous results
- */
-function clearResults() {
-  gallery.innerHTML = '';
+  // if (pageNumber === 1) {
+  //   buttonLoadMore.classList.remove('hidden');
+  // }
 }
