@@ -1,20 +1,25 @@
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import throttle from 'lodash.throttle';
 import { fetchRequest } from './js/fetchRequest';
 import { bigImageModal } from './js/bigImageModal';
-
 import { clearResults } from './js/clearResults';
 import { generateMarkup } from './js/generateMarkup';
 
 const input = document.querySelector('.js-input');
 const form = document.querySelector('.js-form');
 const gallery = document.querySelector('.gallery');
+const guard = document.querySelector('.js-guard');
 
-const NOTYFY_OPTIONS = {
+const NOTIFY_OPTIONS = {
   position: 'left-top',
   timeout: '2000',
   showOnlyTheLastOne: true,
 };
+const OBSERVER_OPTIONS = {
+  root: null,
+  rootMargin: '300px',
+  threshold: 0,
+};
+const observer = new IntersectionObserver(infinityScroll, OBSERVER_OPTIONS);
 let lastPage = 0;
 let request = '';
 let pageNumber = 0;
@@ -22,23 +27,24 @@ let pageNumber = 0;
 form.addEventListener('submit', e => {
   e.preventDefault();
   sendRequest();
+  observer.observe(guard);
 });
 
 /**
  *Іnfinite scroll
  */
-window.addEventListener(
-  'scroll',
-  throttle(function () {
-    if (
-      window.scrollY + window.innerHeight + 1000 >=
-      document.documentElement.scrollHeight
-    ) {
+function infinityScroll(entries, observer) {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && gallery.children.length > 0) {
+      if (pageNumber === lastPage) {
+        observer.unobserve(guard);
+        Notify.info('End of content.', NOTIFY_OPTIONS);
+        return;
+      }
       sendRequest();
     }
-  }, 1000)
-);
-
+  });
+}
 /**
  * Check value of input, update pageNumber , send request to api
  *
@@ -59,7 +65,7 @@ function sendRequest() {
 }
 
 /**
- *Control buttonLoadMore, show alerts on the screen, call markup generate function, call smooth page scrolling function
+ *Show alerts on the screen, call markup generate function
  * @param {Array} images
  * @returns
  */
@@ -69,17 +75,14 @@ function checkResult(images) {
   if (images.hits.length === 0 && pageNumber === 1) {
     Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.',
-      NOTYFY_OPTIONS
+      NOTIFY_OPTIONS
     );
-    return;
-  } else if (images.hits.length === 0 && pageNumber > lastPage) {
-    Notify.info('End of content.', NOTYFY_OPTIONS);
     return;
   }
 
   Notify.success(
     `Hooray! We found ${images.totalHits} images.`,
-    NOTYFY_OPTIONS
+    NOTIFY_OPTIONS
   );
 
   generateMarkup(images.hits, gallery);
